@@ -1,4 +1,6 @@
 import PageHeader from '../components/PageHeader'
+import { useEffect, useState } from 'react'
+import { supabase } from '../supabaseClient'
 
 const timeline = [
   { period: '1993-2000', title: 'Fundación y Primeros Pasos', text: 'Inicio de operaciones con nivel primario, estableciendo las bases de nuestra identidad educativa.' },
@@ -49,6 +51,26 @@ const compromisos = [
 ]
 
 export default function Nosotros() {
+  const [info, setInfo] = useState(null)
+
+  useEffect(() => {
+    async function fetchContactoInfo() {
+      try {
+        const { data, error } = await supabase
+          .from('web_contacto_info')
+          .select('*')
+          .limit(1)
+        
+        if (!error && data && data.length > 0) {
+          setInfo(data[0])
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchContactoInfo()
+  }, [])
+
   return (
     <div>
       <PageHeader title="Nosotros" subtitle="Conoce la historia, el equipo directivo y los datos generales de nuestra institución educativa." />
@@ -241,7 +263,7 @@ export default function Nosotros() {
           <div>
             <h3 className="font-semibold text-primary-dark mb-3">Ubicación</h3>
             <p className="text-sm text-gray-500">Dirección:</p>
-            <p className="text-sm text-gray-700 mb-2">ASOC. CASA HUERTA LA CAMPIÑA MZ O LT 2, Lurigancho, Lima, Perú</p>
+            <p className="text-sm text-gray-700 mb-2">{info?.direccion || 'ASOC. CASA HUERTA LA CAMPIÑA MZ O LT 2, Lurigancho, Lima, Perú'}</p>
             <p className="text-sm text-gray-500">Distrito:</p>
             <p className="text-sm text-gray-700">San Juan de Lurigancho</p>
           </div>
@@ -254,11 +276,11 @@ export default function Nosotros() {
           <div>
             <h3 className="font-semibold text-primary-dark mb-3">Contacto</h3>
             <p className="text-sm text-gray-500">Teléfono:</p>
-            <p className="text-sm text-gray-700 mb-2">(01) 123-4567</p>
+            <p className="text-sm text-gray-700 mb-2">{info?.telefono || '(01) 123-4567'}</p>
             <p className="text-sm text-gray-500">Email:</p>
-            <p className="text-sm text-gray-700 mb-2">mesadepartes1267@gmail.com</p>
+            <p className="text-sm text-gray-700 mb-2">{info?.email || 'mesadepartes1267@gmail.com'}</p>
             <p className="text-sm text-gray-500">Horario de Atención:</p>
-            <p className="text-sm text-gray-700">Lun - Vie: 7:30 AM - 4:00 PM / Sáb: 8:00 AM - 12:00 PM</p>
+            <p className="text-sm text-gray-700">{info?.horarios || info?.horario || 'Lun - Vie: 7:30 AM - 4:00 PM / Sáb: 8:00 AM - 12:00 PM'}</p>
           </div>
         </div>
       </section>

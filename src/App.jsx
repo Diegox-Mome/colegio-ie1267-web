@@ -7,6 +7,8 @@ import Infraestructura from './pages/Infraestructura'
 import Noticias from './pages/Noticias'
 import Admision from './pages/Admision'
 import Contacto from './pages/Contacto'
+import Login from './pages/admin/Login'
+import Dashboard from './pages/admin/Dashboard'
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/admision" element={<Admision />} />
             <Route path="/contacto" element={<Contacto />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin" element={<Dashboard />} />
           </Routes>
         </main>
         <Footer />
