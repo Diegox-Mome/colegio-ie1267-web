@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import { Phone, Mail, MapPin, CheckCircle2 } from 'lucide-react'
+import { supabase } from '../supabaseClient'
 
 const niveles = [
   { nombre: 'Nivel Inicial', edad: '3, 4 y 5 años', extra: '4 aulas disponibles', desc: 'Desarrollo integral a través del juego', horario: '8:00 AM - 1:00 PM' },
@@ -25,6 +26,7 @@ const grados = [
 
 export default function Admision() {
   const [sent, setSent] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     estudiante: '', nacimiento: '', nivel: '', apoderado: '', dni: '', telefono: '', email: '', direccion: '', comentarios: '',
   })
@@ -33,14 +35,33 @@ export default function Admision() {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    const subject = encodeURIComponent(`Solicitud de información - Admisión ${form.estudiante || ''}`)
-    const body = encodeURIComponent(
-      `Nombre del estudiante: ${form.estudiante}\nFecha de nacimiento: ${form.nacimiento}\nNivel educativo: ${form.nivel}\nApoderado: ${form.apoderado}\nDNI apoderado: ${form.dni}\nTeléfono: ${form.telefono}\nEmail: ${form.email}\nDirección: ${form.direccion}\nComentarios: ${form.comentarios}`
-    )
-    window.location.href = `mailto:mesadepartes1267@gmail.com?subject=${subject}&body=${body}`
-    setSent(true)
+    setSaving(true)
+    setSent(false)
+    
+    try {
+      const { error } = await supabase.from('web_mensajes').insert([{
+        tipo: 'Admisión',
+        nombre: form.apoderado || form.estudiante,
+        email: form.email || '',
+        telefono: form.telefono,
+        asunto: form.nivel || 'Admisión',
+        mensaje: `Estudiante: ${form.estudiante}\nNacimiento: ${form.nacimiento}\nDNI Apoderado: ${form.dni}\nDirección: ${form.direccion}\nComentarios: ${form.comentarios}`
+      }])
+      
+      if (error) throw error
+      
+      setForm({
+        estudiante: '', nacimiento: '', nivel: '', apoderado: '', dni: '', telefono: '', email: '', direccion: '', comentarios: '',
+      })
+      setSent(true)
+      setTimeout(() => setSent(false), 5000)
+    } catch (err) {
+      alert('Error al enviar la solicitud: ' + err.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -133,8 +154,8 @@ export default function Admision() {
           <p className="text-center text-sm text-gray-500 mb-8">Completa este formulario y nos pondremos en contacto contigo</p>
 
           {sent && (
-            <div className="bg-green-50 text-green-700 text-sm rounded-md p-3 mb-6 text-center">
-              Se abrió tu cliente de correo con la solicitud lista para enviar. Si no se abrió, escríbenos directamente a mesadepartes1267@gmail.com.
+            <div className="bg-green-100 text-green-800 font-semibold border border-green-300 rounded-md p-4 mb-6 text-center">
+              Mensaje enviado correctamente. Nos pondremos en contacto a la brevedad.
             </div>
           )}
 
@@ -151,8 +172,8 @@ export default function Admision() {
             <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="Correo electrónico" className="border rounded-md px-3 py-2 text-sm sm:col-span-2" />
             <input required name="direccion" value={form.direccion} onChange={handleChange} placeholder="Dirección de domicilio *" className="border rounded-md px-3 py-2 text-sm sm:col-span-2" />
             <textarea name="comentarios" value={form.comentarios} onChange={handleChange} placeholder="Comentarios adicionales" rows={3} className="border rounded-md px-3 py-2 text-sm sm:col-span-2" />
-            <button type="submit" className="sm:col-span-2 bg-primary text-white font-semibold py-3 rounded-md hover:bg-primary-light transition-colors">
-              Enviar Solicitud de Información
+            <button type="submit" disabled={saving} className="sm:col-span-2 bg-primary text-white font-semibold py-3 rounded-md hover:bg-primary-light transition-colors disabled:opacity-50">
+              {saving ? 'Enviando...' : 'Enviar Solicitud de Información'}
             </button>
           </form>
         </div>

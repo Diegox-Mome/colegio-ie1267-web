@@ -100,6 +100,9 @@ export default function ContactoAdmin() {
   return (
     <div className="bg-white border rounded-lg shadow-sm p-6 mb-8">
       <h2 className="text-xl font-bold text-primary-dark mb-4">Información de Contacto</h2>
+      <p className="text-sm text-slate-500 mb-6 bg-slate-50 p-3 rounded-lg border border-slate-100">
+        Modifica el teléfono, correo, dirección y horarios. Esto actualizará instantáneamente el pie de página de toda la web y la pestaña de Contacto.
+      </p>
       
       {error && (
         <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4 text-sm">

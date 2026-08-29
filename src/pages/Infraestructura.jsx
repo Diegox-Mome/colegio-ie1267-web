@@ -30,7 +30,31 @@ const espacios = [
   { title: 'Aulas de Innovación Pedagógica', cant: '3 aulas especiales', desc: 'Espacios tecnológicos diseñados para implementar metodologías innovadoras y el uso de recursos digitales.', items: ['Equipamiento tecnológico avanzado', 'Mobiliario flexible', 'Pizarras digitales interactivas', 'Acceso a plataformas educativas'] },
 ]
 
+import { useEffect, useState } from 'react'
+import { supabase } from '../supabaseClient'
+
 export default function Infraestructura() {
+  const [estadisticas, setEstadisticas] = useState(null)
+
+  useEffect(() => {
+    async function fetchEstadisticas() {
+      try {
+        const { data, error } = await supabase
+          .from('web_estadisticas')
+          .select('*')
+          .eq('id', 1)
+          .single()
+        
+        if (!error && data) {
+          setEstadisticas(data)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchEstadisticas()
+  }, [])
+
   return (
     <div>
       <PageHeader
@@ -61,9 +85,9 @@ export default function Infraestructura() {
         </div>
 
         <div className="mt-12 grid grid-cols-3 gap-6 text-center max-w-lg mx-auto">
-          <div><p className="text-2xl font-bold text-primary">49</p><p className="text-xs text-gray-500">Aulas totales</p></div>
-          <div><p className="text-2xl font-bold text-primary">1,460</p><p className="text-xs text-gray-500">Estudiantes</p></div>
-          <div><p className="text-2xl font-bold text-primary">62</p><p className="text-xs text-gray-500">Docentes</p></div>
+          <div><p className="text-2xl font-bold text-primary">{estadisticas?.aulas || '49'}</p><p className="text-xs text-gray-500">Aulas totales</p></div>
+          <div><p className="text-2xl font-bold text-primary">{estadisticas?.estudiantes || '1,460'}</p><p className="text-xs text-gray-500">Estudiantes</p></div>
+          <div><p className="text-2xl font-bold text-primary">{estadisticas?.docentes || '62'}</p><p className="text-xs text-gray-500">Docentes</p></div>
         </div>
       </section>
 

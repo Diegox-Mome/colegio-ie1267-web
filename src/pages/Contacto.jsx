@@ -10,6 +10,7 @@ const asuntos = [
 
 export default function Contacto() {
   const [sent, setSent] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ nombre: '', telefono: '', email: '', asunto: '', mensaje: '' })
   
   const [info, setInfo] = useState(null)
@@ -41,15 +42,33 @@ export default function Contacto() {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    const targetEmail = info?.email || 'mesadepartes1267@gmail.com'
-    const subject = encodeURIComponent(`Contacto web: ${form.asunto || 'Consulta'}`)
-    const body = encodeURIComponent(
-      `Nombre: ${form.nombre}\nTeléfono: ${form.telefono}\nEmail: ${form.email}\nAsunto: ${form.asunto}\n\nMensaje:\n${form.mensaje}`
-    )
-    window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`
-    setSent(true)
+    setSaving(true)
+    setSent(false)
+    
+    try {
+      const { error } = await supabase.from('web_mensajes').insert([{
+        tipo: 'Contacto',
+        nombre: form.nombre,
+        email: form.email,
+        telefono: form.telefono,
+        asunto: form.asunto,
+        mensaje: form.mensaje
+      }])
+      
+      if (error) throw error
+      
+      setForm({ nombre: '', telefono: '', email: '', asunto: '', mensaje: '' })
+      setSent(true)
+      
+      // Ocultar el mensaje después de 5 segundos
+      setTimeout(() => setSent(false), 5000)
+    } catch (err) {
+      alert('Error al enviar el mensaje: ' + err.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -100,8 +119,8 @@ export default function Contacto() {
               <p className="text-sm text-gray-500 mb-6">Completa el formulario y nos pondremos en contacto contigo</p>
 
               {sent && (
-                <div className="bg-green-50 text-green-700 text-sm rounded-md p-3 mb-4 text-center">
-                  Se abrió tu cliente de correo con el mensaje listo. Si no se abrió, escríbenos a {info?.email || 'mesadepartes1267@gmail.com'}.
+                <div className="bg-green-100 text-green-800 font-semibold border border-green-300 rounded-md p-4 mb-4 text-center">
+                  Mensaje enviado correctamente. Nos pondremos en contacto a la brevedad.
                 </div>
               )}
 
@@ -114,8 +133,8 @@ export default function Contacto() {
                   {asuntos.map((a) => <option key={a} value={a}>{a}</option>)}
                 </select>
                 <textarea required name="mensaje" value={form.mensaje} onChange={handleChange} placeholder="Mensaje *" rows={4} className="w-full border rounded-md px-3 py-2 text-sm" />
-                <button type="submit" className="w-full bg-primary text-white font-semibold py-3 rounded-md hover:bg-primary-light transition-colors">
-                  Enviar Mensaje
+                <button type="submit" disabled={saving} className="w-full bg-primary text-white font-semibold py-3 rounded-md hover:bg-primary-light transition-colors disabled:opacity-50">
+                  {saving ? 'Enviando...' : 'Enviar Mensaje'}
                 </button>
               </form>
             </div>

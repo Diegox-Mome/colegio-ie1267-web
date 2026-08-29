@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Search, Tag, Calendar, Image as ImageIcon, TrendingUp, ChevronDown, LayoutGrid } from 'lucide-react'
+import { Search, Tag, Calendar, Image as ImageIcon, TrendingUp, ChevronDown, LayoutGrid, ZoomIn, X } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 const CATEGORIES = [
@@ -14,6 +14,7 @@ export default function Noticias() {
   
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState('Todas')
+  const [zoomedImage, setZoomedImage] = useState(null)
 
   useEffect(() => {
     async function fetchNoticias() {
@@ -134,12 +135,22 @@ export default function Noticias() {
             {filteredData.map((n, i) => (
               <div key={n.id || i} className="group bg-white rounded-2xl overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] transition-all duration-300 flex flex-col border border-gray-50">
                 <div className="aspect-[4/3] w-full bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                  {n.imagen_url ? (
-                    <img 
-                      src={n.imagen_url} 
-                      alt={n.titulo || n.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                  {n.imagen_url && n.imagen_url.trim() !== '' ? (
+                    <>
+                      <img 
+                        src={n.imagen_url} 
+                        alt={n.titulo || n.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {/* Overlay interactivo */}
+                      <div 
+                        className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer z-10"
+                        onClick={() => setZoomedImage(n.imagen_url)}
+                        title="Ver imagen completa"
+                      >
+                        <ZoomIn className="text-white w-12 h-12 opacity-90 drop-shadow-lg" strokeWidth={1.5} />
+                      </div>
+                    </>
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 flex items-center justify-center text-gray-400 group-hover:scale-105 transition-transform duration-500">
                       <ImageIcon size={48} strokeWidth={1.5} />
@@ -147,7 +158,7 @@ export default function Noticias() {
                   )}
                   {/* Categoría Badge flotante */}
                   {(n.categoria || activeCategory !== 'Todas') && (
-                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-lg text-xs font-bold text-[#0D6246] shadow-sm">
+                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-lg text-xs font-bold text-[#0D6246] shadow-sm z-20">
                       {n.categoria || (activeCategory !== 'Todas' ? activeCategory : 'Comunicado')}
                     </div>
                   )}
@@ -169,6 +180,30 @@ export default function Noticias() {
           </div>
         )}
       </section>
+
+      {/* Modal de Zoom */}
+      {zoomedImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300"
+          onClick={() => setZoomedImage(null)}
+        >
+          <div className="relative max-w-5xl w-full h-full flex items-center justify-center pointer-events-none">
+            <button 
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors pointer-events-auto shadow-sm"
+              onClick={(e) => { e.stopPropagation(); setZoomedImage(null); }}
+              title="Cerrar"
+            >
+              <X size={24} />
+            </button>
+            <img 
+              src={zoomedImage} 
+              alt="Zoom" 
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

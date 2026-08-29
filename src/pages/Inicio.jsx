@@ -1,12 +1,7 @@
 import { Link } from 'react-router-dom'
 import { GraduationCap, Users, Award, Building2, FileText, Newspaper, Layers, Phone } from 'lucide-react'
 
-const stats = [
-  { label: 'Estudiantes', value: '1,460' },
-  { label: 'Docentes', value: '62' },
-  { label: 'Años de Historia', value: '31' },
-  { label: 'Sede Moderna', value: '2024' },
-]
+
 
 const values = [
   { icon: GraduationCap, title: 'Educación Integral', text: 'Formamos estudiantes competentes con enfoque en el desarrollo integral.' },
@@ -21,7 +16,31 @@ const quickAccess = [
   { icon: Phone, title: 'Contacto', text: 'Comunícate con nosotros', to: '/contacto' },
 ]
 
+import { useEffect, useState } from 'react'
+import { supabase } from '../supabaseClient'
+
 export default function Inicio() {
+  const [estadisticas, setEstadisticas] = useState(null)
+
+  useEffect(() => {
+    async function fetchEstadisticas() {
+      try {
+        const { data, error } = await supabase
+          .from('web_estadisticas')
+          .select('*')
+          .eq('id', 1)
+          .single()
+        
+        if (!error && data) {
+          setEstadisticas(data)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    fetchEstadisticas()
+  }, [])
+
   return (
     <div>
       {/* Hero */}
@@ -54,12 +73,22 @@ export default function Inicio() {
       {/* Stats */}
       <section className="bg-white -mt-1 border-b">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-6 py-10 text-center">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <p className="text-3xl font-bold text-primary">{s.value}</p>
-              <p className="text-sm text-gray-500">{s.label}</p>
-            </div>
-          ))}
+          <div>
+            <p className="text-3xl font-bold text-primary">{estadisticas?.estudiantes || '1,460'}</p>
+            <p className="text-sm text-gray-500">Estudiantes</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-primary">{estadisticas?.docentes || '62'}</p>
+            <p className="text-sm text-gray-500">Docentes</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-primary">{estadisticas?.anios_historia || '31'}</p>
+            <p className="text-sm text-gray-500">Años de Historia</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-primary">2024</p>
+            <p className="text-sm text-gray-500">Sede Moderna</p>
+          </div>
         </div>
       </section>
 

@@ -9,10 +9,12 @@ import Admision from './pages/Admision'
 import Contacto from './pages/Contacto'
 import Login from './pages/admin/Login'
 import Dashboard from './pages/admin/Dashboard'
+import ScrollToTop from './components/ScrollToTop'
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-1">

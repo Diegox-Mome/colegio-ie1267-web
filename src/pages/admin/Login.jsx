@@ -30,6 +30,7 @@ export default function Login() {
 
       if (signInError) throw signInError;
 
+      localStorage.setItem('login_time', Date.now().toString());
       navigate('/admin');
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión');
