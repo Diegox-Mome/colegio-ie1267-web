@@ -1,12 +1,43 @@
 import { Link } from 'react-router-dom'
-import { GraduationCap, Users, Award, Building2, FileText, Newspaper, Layers, Phone } from 'lucide-react'
+import { GraduationCap, Users, Award, Building2, FileText, Newspaper, Layers, Phone, History } from 'lucide-react'
 
-
+const heroSlides = [
+  {
+    image: '/images/hero-slide1.jpg',
+    alt: 'Estudiantes IE 1267 Bicentenario La Campiña'
+  },
+  {
+    image: '/images/hero-slide2.jpg',
+    alt: 'Inauguración Nueva Infraestructura IE 1267'
+  },
+  {
+    image: '/images/hero.jpeg',
+    alt: 'Instalaciones Modernas IE Bicentenario 1267'
+  }
+]
 
 const values = [
-  { icon: GraduationCap, title: 'Educación Integral', text: 'Formamos estudiantes competentes con enfoque en el desarrollo integral.' },
-  { icon: Users, title: 'Comunidad Unida', text: 'Trabajamos en equipo: estudiantes, padres y docentes por un objetivo común.' },
-  { icon: Award, title: 'Valores Bicentenario', text: 'Fomentamos respeto, responsabilidad, honradez y disciplina en cada acción.' },
+  {
+    icon: GraduationCap,
+    title: 'Educación Integral',
+    text: 'Formamos estudiantes competentes con enfoque en el desarrollo integral.',
+    borderColor: 'border-l-[5px] border-l-[#0b3b95]',
+    iconColor: 'text-[#0b3b95]'
+  },
+  {
+    icon: Users,
+    title: 'Comunidad Unida',
+    text: 'Trabajamos en equipo: estudiantes, padres y docentes por un objetivo común.',
+    borderColor: 'border-l-[5px] border-l-[#10a349]',
+    iconColor: 'text-[#10a349]'
+  },
+  {
+    icon: Award,
+    title: 'Valores Bicentenario',
+    text: 'Fomentamos respeto, responsabilidad, honradez y disciplina en cada acción.',
+    borderColor: 'border-l-[5px] border-l-[#0ea5e9]',
+    iconColor: 'text-[#0ea5e9]'
+  },
 ]
 
 const quickAccess = [
@@ -18,9 +49,18 @@ const quickAccess = [
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import FloatingSocialButtons from '../components/FloatingSocialButtons'
 
 export default function Inicio() {
   const [estadisticas, setEstadisticas] = useState(null)
+  const [currentSlide, setCurrentSlide] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     async function fetchEstadisticas() {
@@ -42,52 +82,96 @@ export default function Inicio() {
   }, [])
 
   return (
-    <div>
-      {/* Hero */}
-      <section className="relative">
-        <div className="absolute inset-0">
-          <img src="/images/hero.jpeg" alt="IE Bicentenario 1267" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-primary-dark/75" />
-        </div>
-        <div className="relative max-w-5xl mx-auto text-center text-white px-6 py-24 md:py-32">
-          <p className="uppercase tracking-widest text-blue-200 text-sm mb-3">Institución Educativa</p>
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight">
+    <div className="relative">
+      {/* Botones flotantes de redes sociales (exclusivo para Inicio) */}
+      <FloatingSocialButtons />
+
+      {/* Hero Carrusel */}
+      <section className="relative overflow-hidden min-h-[640px] md:min-h-[720px] flex flex-col justify-between">
+        {/* Slides con transición de opacidad */}
+        {heroSlides.map((slide, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+          >
+            <img
+              src={slide.image}
+              alt={slide.alt}
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
+        ))}
+
+        {/* Gradient Overlay semitransparente de izquierda a derecha (azul #0b3b95 a verde #10a349, opacidad 80-85%) */}
+        <div
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            background: 'linear-gradient(to right, rgba(11, 59, 149, 0.85), rgba(16, 163, 73, 0.82))'
+          }}
+        />
+
+        {/* Contenido Principal Hero */}
+        <div className="relative z-20 max-w-5xl mx-auto text-center text-white px-6 pt-20 pb-8 md:pt-28 md:pb-10 flex-1 flex flex-col justify-center items-center">
+          <p className="uppercase tracking-widest text-blue-200 text-sm mb-3 font-semibold">Institución Educativa</p>
+          <h1 className="text-4xl md:text-5xl font-bold leading-tight drop-shadow-sm">
             Bicentenario 1267 <br /> La Campiña
           </h1>
           <p className="mt-4 italic text-blue-100">"Estudio, Trabajo, Honradez, Disciplina"</p>
-          <p className="mt-4 max-w-2xl mx-auto text-gray-200">
+          <p className="mt-4 max-w-2xl mx-auto text-gray-100 text-sm md:text-base leading-relaxed">
             Formando estudiantes íntegros con valores bicentenarios para construir el futuro del
             Perú. Educación de calidad con infraestructura moderna en el corazón de Lurigancho.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link to="/admision" className="bg-accent-red hover:bg-red-700 transition-colors px-6 py-3 rounded-md font-semibold">
+            <Link to="/admision" className="bg-accent-red hover:bg-red-700 transition-colors px-6 py-3 rounded-md font-semibold shadow-md">
               Admisión 2025
             </Link>
-            <Link to="/contacto" className="bg-white/10 hover:bg-white/20 border border-white/40 transition-colors px-6 py-3 rounded-md font-semibold">
+            <Link to="/contacto" className="bg-white/15 hover:bg-white/25 border border-white/40 transition-colors px-6 py-3 rounded-md font-semibold backdrop-blur-xs">
               Solicitar Información
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Stats */}
-      <section className="bg-white -mt-1 border-b">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-6 py-10 text-center">
-          <div>
-            <p className="text-3xl font-bold text-primary">{estadisticas?.estudiantes || '1,460'}</p>
-            <p className="text-sm text-gray-500">Estudiantes</p>
+          {/* Indicadores / Puntos */}
+          <div className="mt-8 flex items-center gap-2.5">
+            {heroSlides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                aria-label={`Ir al slide ${index + 1}`}
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  index === currentSlide
+                    ? 'w-7 bg-white shadow'
+                    : 'w-2.5 bg-white/50 hover:bg-white/80'
+                }`}
+              />
+            ))}
           </div>
-          <div>
-            <p className="text-3xl font-bold text-primary">{estadisticas?.docentes || '62'}</p>
-            <p className="text-sm text-gray-500">Docentes</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-primary">{estadisticas?.anios_historia || '31'}</p>
-            <p className="text-sm text-gray-500">Años de Historia</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-primary">2024</p>
-            <p className="text-sm text-gray-500">Sede Moderna</p>
+        </div>
+
+        {/* Sección de Estadísticas sobre la parte inferior del carrusel */}
+        <div className="relative z-20 w-full border-t border-white/15 bg-black/15 backdrop-blur-xs py-6 px-6">
+          <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="flex flex-col items-center">
+              <Users className="text-sky-300 mb-1.5" size={30} />
+              <p className="text-2xl md:text-3xl font-bold text-white leading-tight">{estadisticas?.estudiantes || '1460'}</p>
+              <p className="text-xs md:text-sm text-white/90 font-medium mt-1">Estudiantes</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <GraduationCap className="text-sky-300 mb-1.5" size={30} />
+              <p className="text-2xl md:text-3xl font-bold text-white leading-tight">{estadisticas?.docentes || '62'}</p>
+              <p className="text-xs md:text-sm text-white/90 font-medium mt-1">Docentes</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <History className="text-sky-300 mb-1.5" size={30} />
+              <p className="text-2xl md:text-3xl font-bold text-white leading-tight">{estadisticas?.anios_historia || '31'}</p>
+              <p className="text-xs md:text-sm text-white/90 font-medium mt-1">Años de Historia</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <Building2 className="text-sky-300 mb-1.5" size={30} />
+              <p className="text-2xl md:text-3xl font-bold text-white leading-tight">2024</p>
+              <p className="text-xs md:text-sm text-white/90 font-medium mt-1">Sede Moderna</p>
+            </div>
           </div>
         </div>
       </section>
@@ -104,8 +188,8 @@ export default function Inicio() {
 
         <div className="mt-10 grid md:grid-cols-3 gap-8">
           {values.map((v) => (
-            <div key={v.title} className="p-6 rounded-lg border hover:shadow-md transition-shadow">
-              <v.icon className="mx-auto text-primary-light mb-3" size={32} />
+            <div key={v.title} className={`p-6 rounded-lg bg-white border border-gray-200 ${v.borderColor} shadow-xs hover:shadow-md transition-shadow`}>
+              <v.icon className={`mx-auto ${v.iconColor} mb-3`} size={32} />
               <h3 className="font-semibold text-primary-dark">{v.title}</h3>
               <p className="text-sm text-gray-500 mt-2">{v.text}</p>
             </div>
