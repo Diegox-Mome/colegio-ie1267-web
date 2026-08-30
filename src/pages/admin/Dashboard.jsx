@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
-import { Loader2, FileText, Phone, Users, BarChart, Mail, Building, LogOut, Settings } from 'lucide-react';
+import { checkAdminRole } from '../../utils/authUtils';
+import { Loader2, FileText, Phone, Users, BarChart, Mail, Building, LogOut, Settings, GraduationCap } from 'lucide-react';
 import NoticiasAdmin from './NoticiasAdmin';
 import ContactoAdmin from './ContactoAdmin';
 import EquipoAdmin from './EquipoAdmin';
 import EstadisticasAdmin from './EstadisticasAdmin';
 import BandejaAdmin from './BandejaAdmin';
+import AdmisionAdmin from './AdmisionAdmin';
 
 export default function Dashboard() {
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -34,16 +36,11 @@ export default function Dashboard() {
         }
 
         const userId = session.user.id;
-        
-        const { data, error: viewError } = await supabase
-          .from('web_admins_view')
-          .select('user_id')
-          .eq('user_id', userId)
-          .single();
+        const hasAdminRole = await checkAdminRole(userId);
 
-        if (viewError || !data) {
+        if (!hasAdminRole) {
           await supabase.auth.signOut();
-          navigate('/login', { state: { error: 'Acceso denegado' } });
+          navigate('/login', { state: { error: 'Acceso denegado: Se requieren permisos de Administrador' } });
           return;
         }
 
@@ -85,8 +82,8 @@ export default function Dashboard() {
         return <BandejaAdmin />;
       case 'noticias':
         return <NoticiasAdmin />;
-      case 'contacto':
-        return <ContactoAdmin />;
+      case 'admision':
+        return <AdmisionAdmin />;
       case 'institucion':
         return (
           <div className="space-y-6">
@@ -111,6 +108,8 @@ export default function Dashboard() {
             {activeSubTab === 'estadisticas' && <EstadisticasAdmin />}
           </div>
         );
+      case 'contacto':
+        return <ContactoAdmin />;
       default:
         return null;
     }
@@ -136,6 +135,12 @@ export default function Dashboard() {
             className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-md transition-colors ${activeTab === 'noticias' ? 'bg-blue-50 text-primary-dark' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
           >
             <FileText size={18} /> Noticias
+          </button>
+          <button 
+            onClick={() => setActiveTab('admision')}
+            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-md transition-colors ${activeTab === 'admision' ? 'bg-blue-50 text-primary-dark' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+          >
+            <GraduationCap size={18} /> Admisión y Matrícula
           </button>
           <button 
             onClick={() => setActiveTab('institucion')}
@@ -173,6 +178,7 @@ export default function Dashboard() {
             >
               <option value="bandeja">Bandeja de Entrada</option>
               <option value="noticias">Noticias</option>
+              <option value="admision">Admisión y Matrícula</option>
               <option value="institucion">Institución</option>
               <option value="contacto">Ajustes de Contacto</option>
             </select>

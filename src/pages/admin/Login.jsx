@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
+import { checkAdminRole } from '../../utils/authUtils';
+import { Info } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -24,11 +26,24 @@ export default function Login() {
 
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
       if (signInError) throw signInError;
+
+      const userId = data?.user?.id;
+      if (!userId) {
+        throw new Error('No se pudo obtener la sesión de usuario.');
+      }
+
+      // Validar si el usuario tiene rol de administrador en la base de datos
+      const isAdmin = await checkAdminRole(userId);
+
+      if (!isAdmin) {
+        await supabase.auth.signOut();
+        throw new Error('Acceso denegado: Esta cuenta no cuenta con permisos de Administrador.');
+      }
 
       localStorage.setItem('login_time', Date.now().toString());
       navigate('/admin');
@@ -40,9 +55,17 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[70vh] bg-gray-50 px-4">
+    <div className="flex items-center justify-center min-h-[70vh] bg-gray-50 px-4 py-8">
       <div className="bg-white p-8 rounded-lg shadow-sm w-full max-w-md border border-gray-200">
-        <h2 className="text-2xl font-bold text-center text-primary-dark mb-6">Iniciar Sesión</h2>
+        <h2 className="text-2xl font-bold text-center text-primary-dark mb-4">Iniciar Sesión</h2>
+
+        {/* Nota informativa */}
+        <div className="bg-blue-50/80 border border-blue-200/90 rounded-lg p-3.5 mb-5 flex items-start gap-2.5 shadow-xs">
+          <Info className="text-primary-light shrink-0 mt-0.5" size={18} />
+          <p className="text-xs text-slate-700 leading-relaxed">
+            Inicie sesión con una cuenta de <span className="font-semibold text-primary">rol Administrador</span>. La asignación y creación de cuentas se gestiona desde el módulo de usuarios del intranet. Si requiere acceso, contacte con el área de soporte.
+          </p>
+        </div>
         
         {error && (
           <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4 text-sm text-center">

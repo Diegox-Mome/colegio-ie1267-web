@@ -2,6 +2,7 @@ import { useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import { Phone, Mail, MapPin, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../supabaseClient'
+import { useAdmision, DEFAULT_ADMISION_INFO } from '../context/AdmisionContext'
 
 const niveles = [
   { nombre: 'Nivel Inicial', edad: '3, 4 y 5 años', extra: '4 aulas disponibles', desc: 'Desarrollo integral a través del juego', horario: '8:00 AM - 1:00 PM' },
@@ -16,8 +17,6 @@ const roadmap = [
   { n: 4, title: 'Matrícula', text: 'Confirmación de vacante y proceso de matrícula oficial.' },
 ]
 
-const requisitos = ['Presentar vacante', 'Actualización de datos', 'DNI del apoderado', 'DNI del estudiante', 'Libreta de notas', 'Pago de derechos de APAFA', 'Otros']
-
 const grados = [
   'Inicial - 3 años', 'Inicial - 4 años', 'Inicial - 5 años',
   'Primaria - 1° grado', 'Primaria - 2° grado', 'Primaria - 3° grado', 'Primaria - 4° grado', 'Primaria - 5° grado', 'Primaria - 6° grado',
@@ -25,6 +24,11 @@ const grados = [
 ]
 
 export default function Admision() {
+  const { admisionInfo } = useAdmision()
+  const info = admisionInfo || DEFAULT_ADMISION_INFO
+  const anio = info.anio_escolar || '2025'
+  const listaRequisitos = (info.requisitos && info.requisitos.length > 0) ? info.requisitos : DEFAULT_ADMISION_INFO.requisitos
+
   const [sent, setSent] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
@@ -67,13 +71,13 @@ export default function Admision() {
   return (
     <div>
       <PageHeader
-        title="Admisión 2025"
+        title={`Admisión ${anio}`}
         subtitle="¡Las inscripciones están abiertas! Únete a nuestra familia educativa Bicentenario y brinda a tu hijo/a la mejor educación integral."
       />
 
       <section className="max-w-5xl mx-auto px-6 py-10 text-center">
         <span className="inline-block bg-accent-red/10 text-accent-red text-sm font-medium px-4 py-1.5 rounded-full mb-4">
-          Inscripciones abiertas hasta marzo 2025
+          {info.estado_texto || `Inscripciones abiertas hasta marzo ${anio}`}
         </span>
         <h2 className="text-2xl md:text-3xl font-bold text-primary-dark">¡Forma parte de la excelencia educativa!</h2>
         <p className="text-gray-500 mt-2">Educación de calidad con valores bicentenarios en moderna infraestructura</p>
@@ -119,8 +123,8 @@ export default function Admision() {
             <h4 className="font-semibold text-primary-dark mb-4">📋 Requisitos para Alumnos Nuevos</h4>
             <p className="text-xs uppercase text-gray-400 mb-2">Documentos Necesarios</p>
             <ul className="space-y-2">
-              {requisitos.map((r, i) => (
-                <li key={r} className="flex items-center gap-2 text-sm text-gray-600">
+              {listaRequisitos.map((r, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircle2 size={16} className="text-primary-light shrink-0" /> {i + 1}. {r}
                 </li>
               ))}
@@ -129,19 +133,19 @@ export default function Admision() {
           <div className="border rounded-lg p-6 space-y-4">
             <div>
               <p className="font-semibold text-primary-dark">📅 Fechas Clave</p>
-              <p className="text-sm text-gray-500">• Inicio de inscripciones: Enero 2025</p>
-              <p className="text-sm text-gray-500">• Fin de inscripciones: Marzo 2025</p>
-              <p className="text-sm text-gray-500">• Inicio de clases: Marzo 2025</p>
+              <p className="text-sm text-gray-500">• Inicio de inscripciones: {info.fecha_inicio_inscripcion || `Enero ${anio}`}</p>
+              <p className="text-sm text-gray-500">• Fin de inscripciones: {info.fecha_fin_inscripcion || `Marzo ${anio}`}</p>
+              <p className="text-sm text-gray-500">• Inicio de clases: {info.fecha_inicio_clases || `Marzo ${anio}`}</p>
             </div>
             <div>
               <p className="font-semibold text-primary-dark">🕐 Horarios de Atención</p>
-              <p className="text-sm text-gray-500">• Lunes a Viernes: 8:00 AM - 3:00 PM</p>
-              <p className="text-sm text-gray-500">• Sábados: 8:00 AM - 12:00 PM</p>
-              <p className="text-sm text-gray-500">• Secretaría: Siempre disponible</p>
+              <p className="text-sm text-gray-500">• {info.horario_semana || 'Lunes a Viernes: 8:00 AM - 3:00 PM'}</p>
+              <p className="text-sm text-gray-500">• {info.horario_sabado || 'Sábados: 8:00 AM - 12:00 PM'}</p>
+              <p className="text-sm text-gray-500">• {info.horario_secretaria || 'Secretaría: Siempre disponible'}</p>
             </div>
             <div>
               <p className="font-semibold text-primary-dark">💡 Nota Importante</p>
-              <p className="text-sm text-gray-500">Para alumnos nuevos es obligatorio presentar la vacante antes de iniciar el proceso de matrícula.</p>
+              <p className="text-sm text-gray-500">{info.nota_importante || 'Para alumnos nuevos es obligatorio presentar la vacante antes de iniciar el proceso de matrícula.'}</p>
             </div>
           </div>
         </div>

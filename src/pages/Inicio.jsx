@@ -1,5 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { GraduationCap, Users, Award, Building2, FileText, Newspaper, Layers, Phone, History } from 'lucide-react'
+import { supabase } from '../supabaseClient'
+import FloatingSocialButtons from '../components/FloatingSocialButtons'
+import { useAdmision } from '../context/AdmisionContext'
 
 const heroSlides = [
   {
@@ -40,20 +44,18 @@ const values = [
   },
 ]
 
-const quickAccess = [
-  { icon: FileText, title: 'Admisión 2025', text: 'Inscripciones abiertas para el próximo año escolar', to: '/admision' },
-  { icon: Newspaper, title: 'Noticias', text: 'Mantente al día con las últimas novedades', to: '/noticias' },
-  { icon: Layers, title: 'Niveles Educativos', text: 'Inicial, Primaria y Secundaria', to: '/infraestructura' },
-  { icon: Phone, title: 'Contacto', text: 'Comunícate con nosotros', to: '/contacto' },
-]
-
-import { useEffect, useState } from 'react'
-import { supabase } from '../supabaseClient'
-import FloatingSocialButtons from '../components/FloatingSocialButtons'
-
 export default function Inicio() {
   const [estadisticas, setEstadisticas] = useState(null)
   const [currentSlide, setCurrentSlide] = useState(0)
+  const { admisionInfo } = useAdmision()
+  const anio = admisionInfo?.anio_escolar || '2025'
+
+  const quickAccess = [
+    { icon: FileText, title: `Admisión ${anio}`, text: 'Inscripciones abiertas para el próximo año escolar', to: '/admision' },
+    { icon: Newspaper, title: 'Noticias', text: 'Mantente al día con las últimas novedades', to: '/noticias' },
+    { icon: Layers, title: 'Niveles Educativos', text: 'Inicial, Primaria y Secundaria', to: '/infraestructura' },
+    { icon: Phone, title: 'Contacto', text: 'Comunícate con nosotros', to: '/contacto' },
+  ]
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -125,7 +127,7 @@ export default function Inicio() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link to="/admision" className="bg-accent-red hover:bg-red-700 transition-colors px-6 py-3 rounded-md font-semibold shadow-md">
-              Admisión 2025
+              Admisión {anio}
             </Link>
             <Link to="/contacto" className="bg-white/15 hover:bg-white/25 border border-white/40 transition-colors px-6 py-3 rounded-md font-semibold backdrop-blur-xs">
               Solicitar Información

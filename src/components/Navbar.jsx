@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { Menu, X, Phone, Mail, MapPin } from 'lucide-react'
+import { Menu, X, Phone, Mail, MapPin, LogIn } from 'lucide-react'
+import { useAdmision } from '../context/AdmisionContext'
 
 const links = [
   { to: '/', label: 'Inicio' },
@@ -13,6 +14,8 @@ const links = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const { admisionInfo } = useAdmision()
+  const anio = admisionInfo?.anio_escolar || '2025'
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
@@ -59,7 +62,14 @@ export default function Navbar() {
             to="/admision"
             className="bg-accent-red text-white text-sm font-semibold px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
           >
-            Admisión 2025
+            Admisión {anio}
+          </NavLink>
+          <NavLink
+            to="/admin"
+            className="flex items-center gap-1 text-sm font-semibold text-primary border border-primary/25 hover:bg-primary/5 px-3 py-1.5 rounded-md transition-colors"
+          >
+            <LogIn size={15} />
+            <span>Acceso Admin</span>
           </NavLink>
         </nav>
 
@@ -85,6 +95,14 @@ export default function Navbar() {
               {l.label}
             </NavLink>
           ))}
+          <NavLink
+            to="/admin"
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-center gap-2 py-2.5 px-3 mt-2 rounded-md text-sm font-semibold text-white bg-primary hover:bg-primary-dark transition-colors"
+          >
+            <LogIn size={16} />
+            <span>Acceso Admin</span>
+          </NavLink>
         </nav>
       )}
     </header>
