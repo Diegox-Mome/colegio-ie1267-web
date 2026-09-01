@@ -30,33 +30,43 @@ const compromisos = [
   { n: '05', title: 'Gestión de la convivencia escolar', text: 'Promover un clima escolar favorable para el aprendizaje.', acciones: ['Normas de convivencia participativas', 'Resolución pacífica de conflictos', 'Ambiente seguro y acogedor'] },
 ]
 
-// Lógica mejorada para clasificar en los 5 grupos exactos
-function categorizeMember(cargo) {
-  const c = (cargo || '').toLowerCase();
-  if (c.includes('director general') || c.includes('directora general')) return 'Equipo Directivo';
-  if (c.includes('subdirector') || c.includes('subdirección')) return 'Subdirección General';
-  if (c.includes('inicial')) return 'Coordinación de Inicial';
-  if (c.includes('grado') || c.includes('primaria')) return 'Coordinación de Primaria';
-  return 'Coordinación de Secundaria';
-}
-
-// Estilos premium por cada grupo basados en los colores de tu diseño original
-const SECTION_STYLES = {
-  'Equipo Directivo': { text: 'text-[#0f172a]', bg: 'bg-slate-50', border: 'border-slate-200' },
-  'Subdirección General': { text: 'text-[#16a34a]', bg: 'bg-green-50', border: 'border-green-200' },
-  'Coordinación de Inicial': { text: 'text-[#0ea5e9]', bg: 'bg-sky-50', border: 'border-sky-200' },
-  'Coordinación de Primaria': { text: 'text-[#0f172a]', bg: 'bg-slate-50', border: 'border-slate-200' },
-  'Coordinación de Secundaria': { text: 'text-[#dc2626]', bg: 'bg-red-50', border: 'border-red-200' },
+const SECTION_TITLE_COLORS = {
+  'Dirección General': 'text-[#0f172a]',
+  'Subdirección General': 'text-[#16a34a]',
+  'Coordinación de Inicial': 'text-[#0ea5e9]',
+  'Coordinación de Primaria': 'text-[#0f172a]',
+  'Coordinación de Secundaria': 'text-[#dc2626]',
 };
 
-// Orden exacto de aparición
+const CARD_COLOR_CYCLES = [
+  { icon: 'bg-gradient-to-br from-emerald-400 to-green-600', text: 'text-green-600' },
+  { icon: 'bg-gradient-to-br from-blue-500 to-indigo-600', text: 'text-blue-600' },
+  { icon: 'bg-gradient-to-br from-rose-400 to-red-600', text: 'text-red-600' },
+  { icon: 'bg-gradient-to-br from-cyan-400 to-sky-600', text: 'text-sky-500' },
+  { icon: 'bg-gradient-to-br from-purple-500 to-fuchsia-600', text: 'text-purple-600' },
+];
+
 const ORDERED_GROUPS = [
-  'Equipo Directivo',
+  'Dirección General',
   'Subdirección General',
   'Coordinación de Inicial',
   'Coordinación de Primaria',
   'Coordinación de Secundaria'
 ];
+
+// LA MISMA LÓGICA SALVAVIDAS EN LA VISTA PÚBLICA
+function getSafeSeccion(miembro) {
+  if (ORDERED_GROUPS.includes(miembro.seccion)) return miembro.seccion;
+  if (miembro.seccion === 'Equipo Directivo') return 'Dirección General';
+
+  const c = (miembro.cargo || '').toLowerCase();
+  if (c.includes('director general') || c.includes('directora')) return 'Dirección General';
+  if (c.includes('subdirector') || c.includes('subdirección')) return 'Subdirección General';
+  if (c.includes('inicial')) return 'Coordinación de Inicial';
+  if (c.includes('grado') || c.includes('primaria')) return 'Coordinación de Primaria';
+
+  return 'Coordinación de Secundaria';
+}
 
 export default function Nosotros() {
   const [info, setInfo] = useState(null)
@@ -70,11 +80,11 @@ export default function Nosotros() {
       try {
         const [resInfo, resEquipo, resEstadisticas] = await Promise.all([
           supabase.from('web_contacto_info').select('*').limit(1),
-          supabase.from('web_equipo').select('*').order('id', { ascending: true }),
+          supabase.from('web_equipo').select('*'),
           supabase.from('web_estadisticas').select('*').eq('id', 1).single()
         ])
 
-        if (!resInfo.error && resInfo.data && resInfo.data.length > 0) setInfo(resInfo.data[0])
+        if (!resInfo.error && resInfo.data?.length > 0) setInfo(resInfo.data[0])
         if (!resEquipo.error) setEquipo(resEquipo.data || [])
         if (!resEstadisticas.error && resEstadisticas.data) setEstadisticas(resEstadisticas.data)
       } catch (err) {
@@ -84,18 +94,27 @@ export default function Nosotros() {
     fetchData()
   }, [])
 
-  // Agrupación ejecutada con la nueva lógica
   const groupedEquipo = equipo.reduce((acc, member) => {
-    const group = categorizeMember(member.cargo);
+    const group = getSafeSeccion(member);
     if (!acc[group]) acc[group] = [];
     acc[group].push(member);
     return acc;
   }, {});
 
+  Object.keys(groupedEquipo).forEach(group => {
+    groupedEquipo[group].sort((a, b) => {
+      const ordenA = a.orden || 0;
+      const ordenB = b.orden || 0;
+      if (ordenA === 0 && ordenB !== 0) return 1;
+      if (ordenB === 0 && ordenA !== 0) return -1;
+      return ordenA - ordenB;
+    });
+  });
+
   return (
-    <div className="bg-slate-50 min-h-screen">
-      
-      {/* Banner Principal Clean */}
+    <div className="bg-[#f8fafc] min-h-screen pb-20">
+
+      {/* Banner Principal */}
       <section className="bg-white py-16 px-6 text-center border-b border-slate-100">
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#0f172a] mb-4 tracking-tight">Nosotros</h1>
         <p className="text-slate-500 text-lg max-w-2xl mx-auto font-medium">
@@ -103,7 +122,7 @@ export default function Nosotros() {
         </p>
       </section>
 
-      {/* Historia (Diseño Premium) */}
+      {/* Historia */}
       <section className="max-w-6xl mx-auto px-6 py-16">
         <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
           <div className="bg-gradient-to-r from-[#0f172a] to-[#059669] p-8">
@@ -138,7 +157,7 @@ export default function Nosotros() {
                 ))}
               </div>
             </div>
-            
+
             <div className="lg:col-span-5 flex flex-col justify-center gap-6">
               <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center shadow-sm hover:shadow-lg transition-all duration-300">
                 <div className="w-16 h-16 mx-auto bg-slate-50 rounded-full flex items-center justify-center mb-4">
@@ -149,7 +168,7 @@ export default function Nosotros() {
               </div>
               <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center shadow-sm hover:shadow-lg transition-all duration-300">
                 <div className="w-16 h-16 mx-auto bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                  <GraduationCap className="text-[#059669] w-8 h-8 stroke-[1.5]" />
+                  <GraduationCap className="text-[#0f172a] w-8 h-8 stroke-[1.5]" />
                 </div>
                 <p className="text-3xl font-black text-[#0f172a] mb-1 tracking-tight">Generaciones</p>
                 <p className="text-slate-500 text-sm font-medium">de egresados exitosos</p>
@@ -162,7 +181,7 @@ export default function Nosotros() {
       {/* Misión / Visión */}
       <section className="max-w-5xl mx-auto px-6 pb-16">
         <h2 className="text-3xl font-bold text-[#0f172a] text-center mb-12">Misión, Visión y Valores</h2>
-        
+
         <div className="space-y-8 mb-16">
           <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
             <div className="bg-[#0f172a] py-6 px-8 flex flex-col items-center justify-center text-center">
@@ -211,40 +230,37 @@ export default function Nosotros() {
         </div>
       </section>
 
-      {/* 
-        EQUIPO DIRECTIVO REDISEÑADO 
-        Agrupado en las 5 categorías con diseño premium
-      */}
-      <section className="bg-white border-y border-slate-100 py-20 px-6">
+      {/* EQUIPO DIRECTIVO PUBLICO */}
+      <section className="bg-white border-y border-slate-100 py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-[#0f172a] text-center mb-16">Equipo Directivo</h2>
-          
+
           <div className="space-y-16">
             {ORDERED_GROUPS.map((groupName) => {
               const members = groupedEquipo[groupName];
-              // Evita renderizar secciones vacías si no hay personal asignado
               if (!members || members.length === 0) return null;
-              
-              const styles = SECTION_STYLES[groupName] || SECTION_STYLES['Equipo Directivo'];
+
+              const titleColor = SECTION_TITLE_COLORS[groupName] || 'text-[#0f172a]';
 
               return (
                 <div key={groupName} className="relative">
-                  <h3 className={`text-xl font-bold text-center mb-10 ${styles.text}`}>
+                  <h3 className={`text-2xl font-bold text-center mb-8 ${titleColor}`}>
                     {groupName}
                   </h3>
-                  
+
                   <div className="flex flex-wrap justify-center gap-6">
-                    {members.map((member) => (
-                      <div key={member.id} className="w-full sm:w-[280px] bg-white rounded-2xl p-6 text-center shadow-[0_4px_20px_rgb(0,0,0,0.04)] border border-slate-100 transition-all hover:-translate-y-1 hover:shadow-xl group">
-                        
-                        <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 border ${styles.bg} ${styles.border}`}>
-                          <User className={`${styles.text} w-8 h-8 stroke-[1.5]`} />
+                    {members.map((member, index) => {
+                      const colorStyle = CARD_COLOR_CYCLES[index % CARD_COLOR_CYCLES.length];
+                      return (
+                        <div key={member.id} className="w-full sm:w-[280px] bg-white rounded-2xl p-8 text-center shadow-[0_4px_20px_rgb(0,0,0,0.04)] border border-slate-100 transition-all duration-300 hover:shadow-xl group">
+                          <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-5 text-white ${colorStyle.icon}`}>
+                            <User className="w-8 h-8 stroke-[1.5]" />
+                          </div>
+                          <h4 className="font-bold text-slate-800 mb-2 text-[15px] leading-tight">{member.nombre}</h4>
+                          <p className={`text-xs font-semibold ${colorStyle.text}`}>{member.cargo}</p>
                         </div>
-                        
-                        <h4 className="font-bold text-slate-800 mb-1.5 text-[15px] leading-tight">{member.nombre}</h4>
-                        <p className={`text-xs font-semibold ${styles.text} opacity-90`}>{member.cargo}</p>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               );
